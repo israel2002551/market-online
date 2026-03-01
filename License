@@ -1,0 +1,39 @@
+
+---
+
+## 📁 BACKEND FOLDER
+
+### 4️⃣ `backend/package.json`
+```json
+{
+  "name": "buysell-nigeria-backend",
+  "version": "1.0.0",
+  "description": "Backend API for BUYSELL Nigeria marketplace",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": ["marketplace", "nigeria", "ecommerce"],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "dotenv": "^16.3.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "multer-storage-cloudinary": "^4.0.0",
+    "cloudinary": "^1.41.0",
+    "express-rate-limit": "^7.1.0",
+    "helmet": "^7.0.0",
+    "cors": "^2.8.5",
+    "morgan": "^1.10.0",
+    "express-validator": "^7.0.1",
+    "slugify": "^1.6.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
