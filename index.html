@@ -1,1 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUYSELL Nigeria | Trusted Online Marketplace</title>
+    <meta name="description" content="Nigeria's most trusted marketplace for buying and selling. Secure payments, verified sellers, fast delivery.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase JS (for database) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Plus Jakarta Sans', 'sans-serif']
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9',
+                            600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e'
+                        },
+                        accent: {
+                            400: '#fbbf24', 500: '#f59e0b', 600: '#d97706'
+                        },
+                        neutral: {
+                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 
+                            300: '#d4d4d4', 500: '#737373', 700: '#404040', 
+                            800: '#262626', 900: '#171717'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; }
+        html { scroll-behavior: smooth; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+        
+        /* Professional Card Hover Effects */
+        .product-card { transition: all 0.2s ease; border: 1px solid transparent; }
+        .product-card:hover { border-color: #e5e7eb; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        
+        /* Badges */
+        .video-badge { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .verified-badge { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .price-badge { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+        .shipping-badge { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        
+        /* Buttons */
+        .btn-primary { 
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
+            transition: all 0.2s ease; 
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); }
+        .btn-secondary { 
+            background: white; border: 1px solid #d4d4d4; 
+            transition: all 0.2s ease; 
+        }
+        .btn-secondary:hover { border-color: #0284c7; color: #0284c7; }
+        
+        /* Category Cards */
+        .category-card { transition: all 0.2s ease; }
+        .category-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15); }
+        
+        /* Rating Stars */
+        .rating-star { color: #fbbf24; transition: transform 0.1s ease; }
+        .rating-star:hover { transform: scale(1.2); }
+        
+        /* Utility Classes */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .header-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); }
+        .hidden-section { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        
+        /* Loading Skeleton */
+        .skeleton { 
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 0.5rem;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Modal Styles */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            z-index: 100; 
+            background: rgba(0,0,0,0.5); 
+            backdrop-filter: blur(4px);
+            align-items: center; 
+            justify-content: center; 
+            padding: 1rem;
+        }
+        .modal.active { display: flex; }
+        .modal-content { 
+            background: white; 
+            border-radius: 1rem; 
+            max-width: 900px; 
+            width: 100%; 
+            max-height: 90vh; 
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            border-left: 4px solid #10b981;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: slideUp 0.3s ease-out;
+            display: none;
+        }
+        .toast.error { border-left-color: #dc2626; }
+        .toast.show { display: block; }
+        
+        /* Haggle Modal */
+        .haggle-input:focus { 
+            outline: none; 
+            border-color: #0284c7; 
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); 
+        }
+    </style>
+</head>
+<body class="bg-neutral-50 text-neutral-900">
 
+    <!-- ================= LANDING PAGE ================= -->
+    <div id="landing-page" class="fixed inset-0 z-50 bg-gradient-to-br from-neutral-900 via-neutral-800 to-brand-900">
+        <div class="min-h-screen flex flex-col">
+            <header class="p-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">B</span>
+                    </div>
+                    <span class="text-2xl font-heading font-bold text-white">BUY<span class="text-accent-400">SELL</span></span>
+                    <span class="text-xs text-brand-300 mt-1">.ng</span>
+                </div>
+                <button onclick="showLoginModal()" class="text-white hover:text-accent-400 transition text-sm font-medium">
+                    Sign In
+                </button>
+            </header>
+            
+            <main class="flex-1 flex items-center justify-center px-6">
+                <div class="grid md:grid-cols-2 gap-8 max-w-6xl w-full">
+                    <!-- Buyer Card -->
+                    <div onclick="enterSite('buyer')" class="group cursor-pointer bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-8 hover:bg-white/20 transition-all duration-300">
+                        <div class="flex items-start justify-between mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-accent-400 to-accent-600 rounded-2xl flex items-center justify-center">
+                                <i class="fa-solid fa-bag-shopping text-2xl text-white"></i>
+                            </div>
+                            <span class="text-xs font-medium bg-white/20 px-3 py-1 rounded-full text-white">Most Popular</span>
+                        </div>
+                        <h2 class="text-3xl font-heading font-bold text-white mb-3">I'm a Buyer</h2>
+                        <p class="text-neutral-300 mb-6 leading-relaxed">Discover authentic products from verified Nigerian sellers. Enjoy secure payments, buyer protection, and fast delivery nationwide.</p>
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="flex items-center gap-2 text-sm text-neutral-300">
+                                <i class="fa-solid fa-shield-check text-accent-400"></i>
+                                <span>Buyer Protection</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-neutral-300">
+                                <i class="fa-solid fa-truck-fast text-accent-400"></i>
+                                <span>Fast Delivery</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary text-white font-semibold px-8 py-4 rounded-xl w-full flex items-center justify-center gap-2 group-hover:gap-3 transition-all">
+                            Start Shopping <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Seller Card -->
+                    <div onclick="enterSite('seller')" class="group cursor-pointer bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl p-8 hover:bg-white/20 transition-all duration-300">
+                        <div class="flex items-start justify-between mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center">
+                                <i class="fa-solid fa-store text-2xl text-white"></i>
+                            </div>
+                            <span class="text-xs font-medium bg-brand-500/30 px-3 py-1 rounded-full text-white">Grow Your Business</span>
+                        </div>
+                        <h2 class="text-3xl font-heading font-bold text-white mb-3">I'm a Seller</h2>
+                        <p class="text-neutral-300 mb-6 leading-relaxed">Reach millions of Nigerian buyers. List products with video demos, manage inventory, and get paid securely.</p>
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="flex items-center gap-2 text-sm text-neutral-300">
+                                <i class="fa-solid fa-video text-brand-400"></i>
+                                <span>Video Listings</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-neutral-300">
+                                <i class="fa-solid fa-chart-line text-brand-400"></i>
+                                <span>Analytics Dashboard</span>
+                            </div>
+                        </div>
+                        <button class="bg-white text-neutral-900 font-semibold px-8 py-4 rounded-xl w-full flex items-center justify-center gap-2 group-hover:gap-3 transition-all hover:bg-neutral-100">
+                            Open Your Store <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </main>
+            
+            <footer class="p-6 border-t border-white/10">
+                <div class="max-w-6xl mx-auto flex flex-wrap justify-center gap-6 text-sm text-neutral-400">
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-lock text-accent-400"></i><span>SSL Secured</span></div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-credit-card text-accent-400"></i><span>Paystack & OPay</span></div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-headset text-accent-400"></i><span>24/7 Support</span></div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ================= MAIN NAVIGATION ================= -->
+    <nav id="main-nav" class="hidden-section sticky top-0 z-40 bg-white header-shadow">
+        <!-- Top Bar -->
+        <div class="bg-neutral-900 text-white text-xs py-2">
+            <div class="container mx-auto px-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <span><i class="fa-solid fa-truck mr-1"></i> Free delivery on orders over ₦15,000</span>
+                    <span class="hidden md:inline"><i class="fa-solid fa-percent mr-1"></i> Black Friday: Up to 70% off</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="#" class="hover:text-accent-400 transition">Track Order</a>
+                    <a href="#" class="hover:text-accent-400 transition" onclick="showHelpModal()">Help Center</a>
+                    <div id="user-menu" class="hidden">
+                        <span id="user-name" class="font-medium"></span>
+                        <button onclick="logoutUser()" class="text-xs text-accent-400 hover:underline ml-2">Sign Out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Header -->
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center gap-6">
+                <!-- Logo -->
+                <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+                    <div class="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-700 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold">B</span>
+                    </div>
+                    <span class="text-xl font-heading font-bold text-neutral-900">BUY<span class="text-accent-500">SELL</span></span>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-3xl">
+                    <div class="relative">
+                        <input type="text" id="search-input" placeholder="Search for products, brands and categories..." 
+                               class="w-full pl-4 pr-12 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+                               onkeyup="handleSearch(event)">
+                        <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-md font-medium transition" onclick="performSearch()">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- User Actions -->
+                <div class="flex items-center gap-4">
+                    <div id="auth-buttons">
+                        <button onclick="showLoginModal()" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium">Sign In</button>
+                    </div>
+                    <div id="user-actions" class="hidden flex items-center gap-4">
+                        <div class="relative cursor-pointer hover:bg-neutral-100 px-3 py-2 rounded-lg transition" onclick="showCart()">
+                            <i class="fa-solid fa-cart-shopping text-xl"></i>
+                            <span id="cart-count" class="absolute -top-2 -right-2 bg-accent-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                        </div>
+                        <div class="w-9 h-9 bg-neutral-200 rounded-full flex items-center justify-center cursor-pointer" onclick="showProfile()">
+                            <i class="fa-solid fa-user text-neutral-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Category Navigation -->
+        <div class="border-t border-neutral-200">
+            <div class="container mx-auto px-4">
+                <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-2" id="category-filters">
+                    <button class="flex items-center gap-2 px-4 py-2 bg-neutral-100 rounded-lg transition whitespace-nowrap font-medium" onclick="filterByCategory('all')">
+                        <i class="fa-solid fa-bars"></i>
+                        <span>All</span>
+                    </button>
+                    <button class="px-4 py-2 hover:bg-neutral-100 rounded-lg transition whitespace-nowrap" onclick="filterByCategory('electronics')">Electronics</button>
+                    <button class="px-4 py-2 hover:bg-neutral-100 rounded-lg transition whitespace-nowrap" onclick="filterByCategory('fashion')">Fashion</button>
+                    <button class="px-4 py-2 hover:bg-neutral-100 rounded-lg transition whitespace-nowrap" onclick="filterByCategory('home')">Home & Kitchen</button>
+                    <button class="px-4 py-2 hover:bg-neutral-100 rounded-lg transition whitespace-nowrap" onclick="filterByCategory('phones')">Phones</button>
+                    <button class="px-4 py-2 hover:bg-neutral-100 rounded-lg transition whitespace-nowrap" onclick="filterByCategory('beauty')">Beauty</button>
+                    <button class="px-4 py-2 hover:bg-neutral-100 rounded-lg transition whitespace-nowrap" onclick="filterByCategory('sports')">Sports</button>
+                    <div class="flex-1"></div>
+                    <button class="flex items-center gap-2 px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white rounded-lg transition whitespace-nowrap font-medium" onclick="filterByVideo()">
+                        <i class="fa-solid fa-video"></i>
+                        Video Listings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <div id="buyer-view" class="hidden-section">
+        
+        <!-- Hero Carousel -->
+        <div class="relative bg-neutral-100">
+            <div class="container mx-auto px-4 py-6">
+                <div class="relative rounded-2xl overflow-hidden shadow-xl">
+                    <div class="flex transition-transform duration-500 ease-out" id="carousel-track">
+                        <div class="min-w-full relative">
+                            <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&h=500&fit=crop" class="w-full h-64 md:h-96 object-cover" alt="Black Friday">
+                            <div class="absolute inset-0 bg-gradient-to-r from-neutral-900/90 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 p-8 text-white max-w-lg">
+                                <span class="inline-block bg-accent-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-3">LIMITED OFFER</span>
+                                <h2 class="text-3xl md:text-4xl font-heading font-bold mb-3">Tech & Engineering Gear</h2>
+                                <p class="text-lg mb-6 opacity-90">Up to 70% off on microcontrollers, sensors, and laptops.</p>
+                                <button class="btn-primary text-white font-semibold px-6 py-3 rounded-lg flex items-center gap-2" onclick="filterByCategory('electronics')">
+                                    Shop Electronics <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="min-w-full relative">
+                            <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1600&h=500&fit=crop" class="w-full h-64 md:h-96 object-cover" alt="Fashion">
+                            <div class="absolute inset-0 bg-gradient-to-r from-neutral-900/90 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 p-8 text-white max-w-lg">
+                                <span class="inline-block bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-3">NEW ARRIVALS</span>
+                                <h2 class="text-3xl md:text-4xl font-heading font-bold mb-3">African Fashion Week</h2>
+                                <p class="text-lg mb-6 opacity-90">Discover authentic Ankara, Aso-oke & contemporary styles</p>
+                                <button class="btn-primary text-white font-semibold px-6 py-3 rounded-lg flex items-center gap-2" onclick="filterByCategory('fashion')">
+                                    Explore Fashion <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Carousel Controls -->
+                    <button onclick="moveCarousel(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg transition">
+                        <i class="fa-solid fa-chevron-left text-neutral-700"></i>
+                    </button>
+                    <button onclick="moveCarousel(1)" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg transition">
+                        <i class="fa-solid fa-chevron-right text-neutral-700"></i>
+                    </button>
+                    
+                    <!-- Carousel Indicators -->
+                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                        <button class="w-2 h-2 rounded-full bg-white/50 hover:bg-white transition" onclick="goToSlide(0)"></button>
+                        <button class="w-2 h-2 rounded-full bg-white/50 hover:bg-white transition" onclick="goToSlide(1)"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Icons -->
+        <div class="container mx-auto px-4 py-4">
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-4 overflow-x-auto no-scrollbar">
+                <div class="flex gap-4 min-w-max">
+                    <div class="category-card bg-neutral-50 rounded-xl p-4 text-center cursor-pointer min-w-[100px]" onclick="filterByCategory('electronics')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-microchip text-blue-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">Electronics</span>
+                    </div>
+                    <div class="category-card bg-neutral-50 rounded-xl p-4 text-center cursor-pointer min-w-[100px]" onclick="filterByCategory('fashion')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-pink-100 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-shirt text-pink-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">Fashion</span>
+                    </div>
+                    <div class="category-card bg-neutral-50 rounded-xl p-4 text-center cursor-pointer min-w-[100px]" onclick="filterByCategory('home')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-green-100 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-house text-green-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">Home</span>
+                    </div>
+                    <div class="category-card bg-neutral-50 rounded-xl p-4 text-center cursor-pointer min-w-[100px]" onclick="filterByCategory('phones')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-purple-100 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-mobile-screen text-purple-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">Phones</span>
+                    </div>
+                    <div class="category-card bg-neutral-50 rounded-xl p-4 text-center cursor-pointer min-w-[100px]" onclick="filterByCategory('beauty')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-orange-100 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-spa text-orange-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">Beauty</span>
+                    </div>
+                    <div class="category-card bg-neutral-50 rounded-xl p-4 text-center cursor-pointer min-w-[100px]" onclick="filterByCategory('sports')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-red-100 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-futbol text-red-600"></i>
+                        </div>
+                        <span class="text-xs font-medium">Sports</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div class="container mx-auto px-4 py-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
+                <div class="p-6 border-b border-neutral-200 flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <h2 class="text-2xl font-heading font-bold">Latest Products</h2>
+                        <p class="text-neutral-500 text-sm mt-1">Live data from Supabase • <span id="product-count">0</span> items</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="sort-select" class="border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" onchange="sortProducts()">
+                            <option value="newest">Newest First</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="rating">Top Rated</option>
+                        </select>
+                        <button class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium" onclick="resetFilters()">
+                            <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Loading State -->
+                    <div id="loading-products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <div class="skeleton h-48 rounded-xl"></div>
+                        <div class="skeleton h-48 rounded-xl"></div>
+                        <div class="skeleton h-48 rounded-xl"></div>
+                        <div class="skeleton h-48 rounded-xl"></div>
+                        <div class="skeleton h-48 rounded-xl"></div>
+                        <div class="skeleton h-48 rounded-xl"></div>
+                    </div>
+                    
+                    <!-- Products Grid (populated by JS) -->
+                    <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 hidden">
+                        <!-- Products injected here -->
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div id="empty-state" class="hidden text-center py-12">
+                        <i class="fa-solid fa-box-open text-4xl text-neutral-300 mb-4"></i>
+                        <p class="text-neutral-500">No products found. Try adjusting your filters.</p>
+                        <button class="btn-primary text-white px-6 py-2 rounded-lg mt-4" onclick="resetFilters()">View All Products</button>
+                    </div>
+                    
+                    <!-- Error State -->
+                    <div id="error-state" class="hidden text-center py-12">
+                        <i class="fa-solid fa-triangle-exclamation text-4xl text-red-400 mb-4"></i>
+                        <p class="text-neutral-500 mb-4">Failed to load products. Please check your connection.</p>
+                        <button class="btn-secondary px-6 py-2 rounded-lg" onclick="loadProducts()">Retry</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="container mx-auto px-4 py-8">
+            <div class="bg-gradient-to-br from-neutral-50 to-white rounded-2xl border border-neutral-200 p-8">
+                <h2 class="text-2xl font-heading font-bold text-center mb-8">Why Nigerians Trust BUYSELL</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <div class="trust-item">
+                        <div class="w-14 h-14 mx-auto mb-3 bg-brand-100 rounded-2xl flex items-center justify-center">
+                            <i class="fa-solid fa-shield-check text-2xl text-brand-600"></i>
+                        </div>
+                        <h3 class="font-semibold mb-1">Buyer Protection</h3>
+                        <p class="text-sm text-neutral-500">Full refund if item not as described</p>
+                    </div>
+                    <div class="trust-item">
+                        <div class="w-14 h-14 mx-auto mb-3 bg-accent-100 rounded-2xl flex items-center justify-center">
+                            <i class="fa-solid fa-lock text-2xl text-accent-600"></i>
+                        </div>
+                        <h3 class="font-semibold mb-1">Secure Payments</h3>
+                        <p class="text-sm text-neutral-500">Paystack & OPay integration</p>
+                    </div>
+                    <div class="trust-item">
+                        <div class="w-14 h-14 mx-auto mb-3 bg-green-100 rounded-2xl flex items-center justify-center">
+                            <i class="fa-solid fa-truck-fast text-2xl text-green-600"></i>
+                        </div>
+                        <h3 class="font-semibold mb-1">Fast Delivery</h3>
+                        <p class="text-sm text-neutral-500">Nationwide shipping in 2-5 days</p>
+                    </div>
+                    <div class="trust-item">
+                        <div class="w-14 h-14 mx-auto mb-3 bg-purple-100 rounded-2xl flex items-center justify-center">
+                            <i class="fa-solid fa-headset text-2xl text-purple-600"></i>
+                        </div>
+                        <h3 class="font-semibold mb-1">24/7 Support</h3>
+                        <p class="text-sm text-neutral-500">Dedicated Nigerian support team</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+    
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content p-6 relative">
+            <button onclick="closeModal('auth-modal')" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <span class="text-white font-bold text-lg">B</span>
+                </div>
+                <h3 class="text-xl font-heading font-bold">Welcome to BUYSELL</h3>
+                <p class="text-neutral-500 text-sm">Sign in to start shopping or selling</p>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email</label>
+                        <input type="email" id="login-email" required class="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Password</label>
+                        <input type="password" id="login-password" required class="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn-primary text-white font-semibold px-6 py-3 rounded-lg w-full">Sign In</button>
+                </div>
+                <p class="text-center text-sm text-neutral-500 mt-4">
+                    Don't have an account? <button type="button" class="text-brand-600 font-medium hover:underline" onclick="toggleAuthMode('register')">Create one</button>
+                </p>
+            </form>
+            
+            <!-- Register Form (Hidden by default) -->
+            <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">First Name</label>
+                            <input type="text" id="reg-firstname" required class="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Last Name</label>
+                            <input type="text" id="reg-lastname" required class="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email</label>
+                        <input type="email" id="reg-email" required class="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Password</label>
+                        <input type="password" id="reg-password" required class="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="•••••••• (min 8 chars)">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">I am a:</label>
+                        <select id="reg-usertype" class="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="buyer">Buyer</option>
+                            <option value="seller">Seller</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary text-white font-semibold px-6 py-3 rounded-lg w-full">Create Account</button>
+                </div>
+                <p class="text-center text-sm text-neutral-500 mt-4">
+                    Already have an account? <button type="button" class="text-brand-600 font-medium hover:underline" onclick="toggleAuthMode('login')">Sign in</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content p-6 relative max-w-4xl">
+            <button onclick="closeModal('product-modal')" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 z-10">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <div id="product-detail-content" class="grid md:grid-cols-2 gap-6">
+                <!-- Product Image -->
+                <div class="relative">
+                    <img id="modal-product-image" src="" class="w-full h-80 object-cover rounded-xl" alt="">
+                    <span id="modal-video-badge" class="hidden absolute top-4 right-4 video-badge text-xs px-3 py-1.5 rounded text-white font-medium flex items-center gap-1">
+                        <i class="fa-solid fa-video"></i> Video Listing
+                    </span>
+                </div>
+                
+                <!-- Product Info -->
+                <div>
+                    <div class="flex items-start justify-between mb-3">
+                        <h3 id="modal-product-name" class="text-xl font-heading font-bold"></h3>
+                        <button class="text-neutral-400 hover:text-red-500 transition">
+                            <i class="fa-regular fa-heart text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="flex text-accent-400">
+                            <i class="fa-solid fa-star rating-star"></i>
+                            <i class="fa-solid fa-star rating-star"></i>
+                            <i class="fa-solid fa-star rating-star"></i>
+                            <i class="fa-solid fa-star rating-star"></i>
+                            <i class="fa-solid fa-star-half-stroke rating-star"></i>
+                        </div>
+                        <span class="text-sm text-neutral-500">(234 reviews)</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <span id="modal-product-price" class="text-3xl font-bold text-neutral-900"></span>
+                        <span id="modal-original-price" class="text-lg text-neutral-400 line-through ml-2"></span>
+                        <span id="modal-discount" class="hidden bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded ml-2"></span>
+                    </div>
+                    
+                    <p id="modal-product-description" class="text-neutral-600 mb-4 leading-relaxed"></p>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-tag text-brand-600"></i>
+                            <span>Condition: <strong id="modal-condition" class="text-neutral-900"></strong></span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-location-dot text-brand-600"></i>
+                            <span>Location: <strong id="modal-location" class="text-neutral-900"></strong></span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-truck text-brand-600"></i>
+                            <span id="modal-shipping" class="text-neutral-900"></span>
+                        </div>
+                        <div id="modal-negotiable" class="flex items-center gap-2 text-sm hidden">
+                            <i class="fa-solid fa-handshake text-accent-600"></i>
+                            <span class="text-accent-700 font-medium">Price is negotiable</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="addToCart()" class="btn-primary text-white font-semibold px-6 py-3 rounded-lg flex-1 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                        </button>
+                        <button id="haggle-btn" onclick="showHaggleModal()" class="btn-secondary px-6 py-3 rounded-lg font-medium hidden">
+                            Haggle
+                        </button>
+                    </div>
+                    
+                    <!-- Seller Info -->
+                    <div class="mt-6 pt-4 border-t border-neutral-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-neutral-200 rounded-full flex items-center justify-center">
+                                <i class="fa-solid fa-store text-neutral-500"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium" id="modal-seller-name">Seller Name</div>
+                                <div class="flex items-center gap-1 text-xs text-neutral-500">
+                                    <span class="verified-badge text-white px-2 py-0.5 rounded text-xs flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check"></i> Verified
+                                    </span>
+                                    <span>• 4.8★ rating</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Haggle/Negotiate Modal -->
+    <div id="haggle-modal" class="modal">
+        <div class="modal-content p-6 relative max-w-md">
+            <button onclick="closeModal('haggle-modal')" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <h3 class="text-lg font-heading font-bold mb-4">Make an Offer</h3>
+            <p class="text-neutral-500 text-sm mb-4">Negotiate the price with the seller. They can accept, decline, or counter.</p>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Your Offer (₦)</label>
+                <input type="number" id="haggle-amount" class="haggle-input w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-brand-500 text-lg font-bold" placeholder="Enter amount">
+                <p class="text-xs text-neutral-400 mt-1">Original price: <span id="haggle-original" class="font-medium"></span></p>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Message to Seller (Optional)</label>
+                <textarea id="haggle-message" rows="3" class="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Why are you making this offer?"></textarea>
+            </div>
+            
+            <button onclick="submitHaggle()" class="btn-primary text-white font-semibold px-6 py-3 rounded-lg w-full">
+                Send Offer
+            </button>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content p-6 relative max-w-2xl max-h-[80vh] overflow-y-auto">
+            <button onclick="closeModal('cart-modal')" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <h3 class="text-lg font-heading font-bold mb-4">Your Cart (<span id="cart-item-count">0</span> items)</h3>
+            
+            <div id="cart-items" class="space-y-4">
+                <!-- Cart items injected here -->
+                <p class="text-neutral-500 text-center py-8">Your cart is empty</p>
+            </div>
+            
+            <div id="cart-summary" class="hidden mt-6 pt-4 border-t border-neutral-200">
+                <div class="flex justify-between mb-2">
+                    <span class="text-neutral-600">Subtotal</span>
+                    <span id="cart-subtotal" class="font-bold">₦0</span>
+                </div>
+                <div class="flex justify-between mb-4">
+                    <span class="text-neutral-600">Delivery</span>
+                    <span class="text-green-600 font-medium">Calculated at checkout</span>
+                </div>
+                <button onclick="checkout()" class="btn-primary text-white font-semibold px-6 py-3 rounded-lg w-full">
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content p-6 relative max-w-lg">
+            <button onclick="closeModal('help-modal')" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <h3 class="text-lg font-heading font-bold mb-4">Help Center</h3>
+            
+            <div class="space-y-4">
+                <div class="border border-neutral-200 rounded-lg p-4">
+                    <h4 class="font-medium mb-2"><i class="fa-solid fa-circle-question text-brand-600 mr-2"></i>How to Buy</h4>
+                    <ol class="text-sm text-neutral-600 list-decimal list-inside space-y-1">
+                        <li>Search or browse products</li>
+                        <li>Click on a product to view details</li>
+                        <li>Add to cart or haggle on price</li>
+                        <li>Checkout with Paystack or OPay</li>
+                        <li>Track your order in your account</li>
+                    </ol>
+                </div>
+                
+                <div class="border border-neutral-200 rounded-lg p-4">
+                    <h4 class="font-medium mb-2"><i class="fa-solid fa-store text-brand-600 mr-2"></i>How to Sell</h4>
+                    <ol class="text-sm text-neutral-600 list-decimal list-inside space-y-1">
+                        <li>Sign up as a seller</li>
+                        <li>Complete seller verification</li>
+                        <li>List products with photos/videos</li>
+                        <li>Set prices (negotiable or fixed)</li>
+                        <li>Manage orders from your dashboard</li>
+                    </ol>
+                </div>
+                
+                <div class="border border-neutral-200 rounded-lg p-4">
+                    <h4 class="font-medium mb-2"><i class="fa-solid fa-shield text-brand-600 mr-2"></i>Buyer Protection</h4>
+                    <p class="text-sm text-neutral-600">If your item doesn't arrive or isn't as described, you're eligible for a full refund. Contact support within 7 days of delivery.</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-neutral-200 text-center">
+                <p class="text-sm text-neutral-500 mb-3">Still need help?</p>
+                <a href="mailto:support@buysell.ng" class="btn-primary text-white px-6 py-2 rounded-lg inline-flex items-center gap-2">
+                    <i class="fa-solid fa-envelope"></i> Email Support
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <div class="flex items-start gap-3">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-green-500 text-lg mt-0.5"></i>
+            <div>
+                <p id="toast-message" class="font-medium">Success!</p>
+                <p id="toast-details" class="text-sm text-neutral-500"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT ================= -->
+    <script>
+        // ==========================================
+        // SUPABASE CONFIGURATION
+        // ==========================================
+        const SUPABASE_URL = 'https://hasairlvjazwhtvylrjl.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Z179YOa4aZcA2SR2mqWlfw_sM7Xa9y8';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // ==========================================
+        // GLOBAL STATE
+        // ==========================================
+        let currentUser = null;
+        let products = [];
+        let filteredProducts = [];
+        let cart = JSON.parse(localStorage.getItem('buysell_cart')) || [];
+        let currentProduct = null;
+        let currentSlide = 0;
+        const slides = 2; // Number of carousel slides
+        
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check for existing session
+            const {  { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                currentUser = session.user;
+                updateAuthUI();
+            }
+            
+            // Load products when entering site
+            window.loadProducts = loadProducts;
+        });
+        
+        // ==========================================
+        // AUTHENTICATION FUNCTIONS
+        // ==========================================
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            showToast('Signing in...', 'info');
+            
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+                showToast(error.message, 'error');
+                return;
+            }
+            
+            currentUser = data.user;
+            closeModal('auth-modal');
+            updateAuthUI();
+            showToast('Welcome back! 👋', 'success');
+            
+            // Load user profile data if needed
+            loadUserProfile();
+        }
+        
+        async function handleRegister(e) {
+            e.preventDefault();
+            const firstName = document.getElementById('reg-firstname').value;
+            const lastName = document.getElementById('reg-lastname').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const userType = document.getElementById('reg-usertype').value;
+            
+            showToast('Creating account...', 'info');
+            
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                     {
+                        first_name: firstName,
+                        last_name: lastName,
+                        user_type: userType
+                    }
+                }
+            });
+            
+            if (error) {
+                showToast(error.message, 'error');
+                return;
+            }
+            
+            // Create user profile in database
+            if (data.user) {
+                await supabase.from('users').insert({
+                    id: data.user.id,
+                    email: email,
+                    first_name: firstName,
+                    last_name: lastName,
+                    user_type: userType,
+                    created_at: new Date().toISOString()
+                });
+            }
+            
+            currentUser = data.user;
+            closeModal('auth-modal');
+            updateAuthUI();
+            showToast('Account created! Welcome to BUYSELL 🎉', 'success');
+        }
+        
+        async function logoutUser() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            updateAuthUI();
+            showToast('Signed out successfully', 'success');
+        }
+        
+        function updateAuthUI() {
+            const authButtons = document.getElementById('auth-buttons');
+            const userActions = document.getElementById('user-actions');
+            const userMenu = document.getElementById('user-menu');
+            const userName = document.getElementById('user-name');
+            
+            if (currentUser) {
+                authButtons.classList.add('hidden');
+                userActions.classList.remove('hidden');
+                userMenu.classList.remove('hidden');
+                
+                // Get user name from metadata or profile
+                const name = currentUser.user_metadata?.first_name || currentUser.email?.split('@')[0] || 'User';
+                userName.textContent = name;
+            } else {
+                authButtons.classList.remove('hidden');
+                userActions.classList.add('hidden');
+                userMenu.classList.add('hidden');
+            }
+        }
+        
+        function toggleAuthMode(mode) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            
+            if (mode === 'register') {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            } else {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            }
+        }
+        
+        async function loadUserProfile() {
+            if (!currentUser) return;
+            
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (error) {
+                console.error('Error loading profile:', error);
+                return;
+            }
+            
+            // Store user data for later use
+            window.userData = data;
+        }
+        
+        // ==========================================
+        // PRODUCT FUNCTIONS
+        // ==========================================
+        async function loadProducts(filters = {}) {
+            // Show loading state
+            document.getElementById('loading-products').classList.remove('hidden');
+            document.getElementById('products-grid').classList.add('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('error-state').classList.add('hidden');
+            
+            try {
+                let query = supabase.from('products').select('*').eq('status', 'active');
+                
+                // Apply filters
+                if (filters.category && filters.category !== 'all') {
+                    query = query.eq('category', filters.category);
+                }
+                if (filters.hasVideo) {
+                    query = query.eq('has_video', true);
+                }
+                if (filters.search) {
+                    query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+                }
+                if (filters.minPrice) {
+                    query = query.gte('price', filters.minPrice);
+                }
+                if (filters.maxPrice) {
+                    query = query.lte('price', filters.maxPrice);
+                }
+                
+                // Sort
+                switch(filters.sortBy) {
+                    case 'price-low': query = query.order('price', { ascending: true }); break;
+                    case 'price-high': query = query.order('price', { ascending: false }); break;
+                    case 'rating': query = query.order('rating', { ascending: false }); break;
+                    default: query = query.order('created_at', { ascending: false });
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                
+                products = data || [];
+                filteredProducts = [...products];
+                
+                // Update product count
+                document.getElementById('product-count').textContent = filteredProducts.length;
+                
+                // Hide loading, show grid
+                document.getElementById('loading-products').classList.add('hidden');
+                
+                if (filteredProducts.length === 0) {
+                    document.getElementById('empty-state').classList.remove('hidden');
+                } else {
+                    document.getElementById('products-grid').classList.remove('hidden');
+                    renderProducts(filteredProducts);
+                }
+                
+            } catch (error) {
+                console.error('Error loading products:', error);
+                document.getElementById('loading-products').classList.add('hidden');
+                document.getElementById('error-state').classList.remove('hidden');
+                showToast('Failed to load products. Please try again.', 'error');
+            }
+        }
+        
+        function renderProducts(productsToRender) {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+            
+            productsToRender.forEach(product => {
+                const discount = product.original_price ? 
+                    Math.round((1 - product.price / product.original_price) * 100) : 0;
+                
+                const productHTML = `
+                    <div class="product-card bg-white rounded-xl border border-neutral-200 overflow-hidden cursor-pointer" onclick="showProductDetail('${product.id}')">
+                        <div class="relative">
+                            <img src="${product.image_url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop'}" 
+                                 class="w-full h-40 object-cover" alt="${product.name}" 
+                                 onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
+                            ${product.has_video ? 
+                                `<span class="absolute top-2 right-2 video-badge text-xs px-2 py-1 rounded text-white flex items-center gap-1">
+                                    <i class="fa-solid fa-video"></i> Video
+                                </span>` : ''}
+                            ${discount > 0 ? 
+                                `<span class="absolute top-2 left-2 price-badge text-white text-xs font-bold px-2 py-1 rounded">-${discount}%</span>` : ''}
+                            <button onclick="event.stopPropagation(); addToCart('${product.id}')" 
+                                    class="absolute bottom-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow hover:shadow-md transition opacity-0 group-hover:opacity-100">
+                                <i class="fa-solid fa-cart-plus text-neutral-600 hover:text-brand-600"></i>
+                            </button>
+                        </div>
+                        <div class="p-3">
+                            <h3 class="font-medium text-sm truncate mb-1">${product.name}</h3>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-lg font-bold text-neutral-900">₦${product.price?.toLocaleString() || '0'}</span>
+                                ${product.original_price ? 
+                                    `<span class="text-sm text-neutral-400 line-through">₦${product.original_price.toLocaleString()}</span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-1 mt-2 text-xs text-neutral-500">
+                                <i class="fa-solid fa-location-dot text-brand-600"></i>
+                                <span class="truncate">${product.location || 'Nigeria'}</span>
+                            </div>
+                            ${product.is_negotiable ? 
+                                `<div class="mt-1 text-xs text-accent-700 font-medium flex items-center gap-1">
+                                    <i class="fa-solid fa-handshake"></i> Negotiable
+                                </div>` : ''}
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += productHTML;
+            });
+        }
+        
+        function showProductDetail(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            currentProduct = product;
+            
+            // Populate modal
+            document.getElementById('modal-product-image').src = 
+                product.image_url || 'https://via.placeholder.com/400x400?text=No+Image';
+            document.getElementById('modal-product-name').textContent = product.name;
+            document.getElementById('modal-product-price').textContent = `₦${product.price?.toLocaleString() || '0'}`;
+            
+            if (product.original_price) {
+                document.getElementById('modal-original-price').textContent = `₦${product.original_price.toLocaleString()}`;
+                document.getElementById('modal-original-price').classList.remove('hidden');
+                const discount = Math.round((1 - product.price / product.original_price) * 100);
+                document.getElementById('modal-discount').textContent = `-${discount}%`;
+                document.getElementById('modal-discount').classList.remove('hidden');
+            } else {
+                document.getElementById('modal-original-price').classList.add('hidden');
+                document.getElementById('modal-discount').classList.add('hidden');
+            }
+            
+            document.getElementById('modal-product-description').textContent = 
+                product.description || 'No description available.';
+            document.getElementById('modal-condition').textContent = 
+                product.condition?.charAt(0).toUpperCase() + product.condition?.slice(1) || 'New';
+            document.getElementById('modal-location').textContent = product.location || 'Nigeria';
+            
+            // Shipping info
+            const shippingText = product.is_free_shipping ? 
+                'Free delivery nationwide' : 
+                `Delivery: ₦${product.shipping_cost?.toLocaleString() || '1,500'}`;
+            document.getElementById('modal-shipping').textContent = shippingText;
+            
+            // Negotiable badge
+            if (product.is_negotiable) {
+                document.getElementById('modal-negotiable').classList.remove('hidden');
+                document.getElementById('haggle-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('modal-negotiable').classList.add('hidden');
+                document.getElementById('haggle-btn').classList.add('hidden');
+            }
+            
+            // Video badge
+            if (product.has_video) {
+                document.getElementById('modal-video-badge').classList.remove('hidden');
+            } else {
+                document.getElementById('modal-video-badge').classList.add('hidden');
+            }
+            
+            // Seller info (mock for now)
+            document.getElementById('modal-seller-name').textContent = 
+                product.seller_name || 'Verified Seller';
+            
+            // Show modal
+            document.getElementById('product-modal').classList.add('active');
+        }
+        
+        // ==========================================
+        // CART FUNCTIONS
+        // ==========================================
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId) || currentProduct;
+            if (!product) return;
+            
+            // Check if already in cart
+            const existingItem = cart.find(item => item.id === product.id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image_url,
+                    quantity: 1,
+                    seller_id: product.seller_id
+                });
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('buysell_cart', JSON.stringify(cart));
+            
+            // Update UI
+            updateCartCount();
+            showToast(`${product.name} added to cart! 🛒`, 'success');
+        }
+        
+        function updateCartCount() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+            document.getElementById('cart-item-count').textContent = count;
+        }
+        
+        function showCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartSummary = document.getElementById('cart-summary');
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="text-neutral-500 text-center py-8">Your cart is empty</p>';
+                cartSummary.classList.add('hidden');
+            } else {
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="flex gap-4 p-3 border border-neutral-200 rounded-lg">
+                        <img src="${item.image || 'https://via.placeholder.com/80'}" 
+                             class="w-20 h-20 object-cover rounded-lg" alt="${item.name}">
+                        <div class="flex-1">
+                            <h4 class="font-medium text-sm">${item.name}</h4>
+                            <p class="text-brand-600 font-bold">₦${item.price?.toLocaleString()}</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <button onclick="updateCartItem('${item.id}', -1)" 
+                                        class="w-7 h-7 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100">
+                                    <i class="fa-solid fa-minus text-xs"></i>
+                                </button>
+                                <span class="font-medium">${item.quantity}</span>
+                                <button onclick="updateCartItem('${item.id}', 1)" 
+                                        class="w-7 h-7 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100">
+                                    <i class="fa-solid fa-plus text-xs"></i>
+                                </button>
+                                <button onclick="removeFromCart('${item.id}')" 
+                                        class="ml-auto text-red-500 hover:text-red-700 text-sm">
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Calculate subtotal
+                const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+                document.getElementById('cart-subtotal').textContent = `₦${subtotal.toLocaleString()}`;
+                cartSummary.classList.remove('hidden');
+            }
+            
+            document.getElementById('cart-modal').classList.add('active');
+        }
+        
+        function updateCartItem(productId, change) {
+            const item = cart.find(i => i.id === productId);
+            if (!item) return;
+            
+            item.quantity += change;
+            
+            if (item.quantity <= 0) {
+                removeFromCart(productId);
+            } else {
+                localStorage.setItem('buysell_cart', JSON.stringify(cart));
+                showCart(); // Re-render
+                updateCartCount();
+            }
+        }
+        
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            localStorage.setItem('buysell_cart', JSON.stringify(cart));
+            showCart(); // Re-render
+            updateCartCount();
+            showToast('Item removed from cart', 'success');
+        }
+        
+        function checkout() {
+            if (!currentUser) {
+                showToast('Please sign in to checkout', 'error');
+                closeModal('cart-modal');
+                showLoginModal();
+                return;
+            }
+            
+            showToast('Redirecting to Paystack...', 'info');
+            
+            // In production, this would call your backend to create a Paystack transaction
+            // For demo, we'll simulate:
+            setTimeout(() => {
+                showToast('🎉 Order placed successfully! Check your email for confirmation.', 'success');
+                cart = [];
+                localStorage.setItem('buysell_cart', JSON.stringify(cart));
+                updateCartCount();
+                closeModal('cart-modal');
+            }, 2000);
+        }
+        
+        // ==========================================
+        // HAGGLE/NEGOTIATION FUNCTIONS
+        // ==========================================
+        function showHaggleModal() {
+            if (!currentProduct) return;
+            
+            document.getElementById('haggle-original').textContent = 
+                `₦${currentProduct.price?.toLocaleString() || '0'}`;
+            document.getElementById('haggle-amount').value = '';
+            document.getElementById('haggle-message').value = '';
+            
+            document.getElementById('haggle-modal').classList.add('active');
+        }
+        
+        async function submitHaggle() {
+            const amount = parseFloat(document.getElementById('haggle-amount').value);
+            const message = document.getElementById('haggle-message').value;
+            
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid offer amount', 'error');
+                return;
+            }
+            
+            if (!currentUser) {
+                showToast('Please sign in to make an offer', 'error');
+                closeModal('haggle-modal');
+                showLoginModal();
+                return;
+            }
+            
+            showToast('Sending offer to seller...', 'info');
+            
+            // Save offer to Supabase
+            const { error } = await supabase.from('offers').insert({
+                product_id: currentProduct.id,
+                buyer_id: currentUser.id,
+                seller_id: currentProduct.seller_id,
+                offered_price: amount,
+                original_price: currentProduct.price,
+                message: message,
+                status: 'pending',
+                created_at: new Date().toISOString()
+            });
+            
+            if (error) {
+                showToast('Failed to send offer. Please try again.', 'error');
+                console.error('Offer error:', error);
+                return;
+            }
+            
+            closeModal('haggle-modal');
+            showToast('Offer sent! Seller will respond within 24 hours. 💬', 'success');
+        }
+        
+        // ==========================================
+        // SEARCH & FILTER FUNCTIONS
+        // ==========================================
+        function handleSearch(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        }
+        
+        function performSearch() {
+            const query = document.getElementById('search-input').value.trim();
+            if (query.length < 2) {
+                showToast('Please enter at least 2 characters to search', 'error');
+                return;
+            }
+            
+            loadProducts({ search: query });
+            showToast(`Searching for "${query}"...`, 'info');
+        }
+        
+        function filterByCategory(category) {
+            loadProducts({ category });
+            showToast(`Showing ${category === 'all' ? 'all' : category} products`, 'info');
+        }
+        
+        function filterByVideo() {
+            loadProducts({ hasVideo: true });
+            showToast('Showing video listings only', 'info');
+        }
+        
+        function sortProducts() {
+            const sortBy = document.getElementById('sort-select').value;
+            loadProducts({ sortBy });
+        }
+        
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('sort-select').value = 'newest';
+            loadProducts({});
+            showToast('Filters reset', 'success');
+        }
+        
+        // ==========================================
+        // CAROUSEL FUNCTIONS
+        // ==========================================
+        function updateCarousel() {
+            const track = document.getElementById('carousel-track');
+            if (track) {
+                track.style.transform = `translateX(-${currentSlide * 100}%)`;
+            }
+        }
+        
+        function moveCarousel(direction) {
+            currentSlide = (currentSlide + direction + slides) % slides;
+            updateCarousel();
+        }
+        
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
+        }
+        
+        // Auto-advance carousel
+        setInterval(() => {
+            if (document.getElementById('buyer-view').classList.contains('hidden-section') === false) {
+                moveCarousel(1);
+            }
+        }, 6000);
+        
+        // ==========================================
+        // UI HELPER FUNCTIONS
+        // ==========================================
+        function enterSite(userType) {
+            // Animate landing page out
+            const landing = document.getElementById('landing-page');
+            landing.style.opacity = '0';
+            landing.style.transition = 'opacity 0.3s ease';
+            
+            setTimeout(() => {
+                landing.style.display = 'none';
+                
+                // Show main app
+                document.getElementById('main-nav').classList.remove('hidden-section');
+                document.getElementById('buyer-view').classList.remove('hidden-section');
+                document.getElementById('buyer-view').style.animation = 'slide-up 0.4s ease-out';
+                
+                // Load products
+                loadProducts();
+                
+                // Update cart count
+                updateCartCount();
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 300);
+        }
+        
+        function showLoginModal() {
+            document.getElementById('auth-modal').classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        function showProfile() {
+            if (!currentUser) {
+                showLoginModal();
+                return;
+            }
+            showToast('Profile feature coming soon! 👤', 'info');
+        }
+        
+        function showHelpModal() {
+            document.getElementById('help-modal').classList.add('active');
+        }
+        
+        // Toast Notifications
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const toastDetails = document.getElementById('toast-details');
+            const toastIcon = document.getElementById('toast-icon');
+            
+            toastMessage.textContent = type === 'success' ? 'Success!' : 
+                                      type === 'error' ? 'Error' : 'Info';
+            toastDetails.textContent = message;
+            
+            // Set icon and color
+            if (type === 'success') {
+                toastIcon.className = 'fa-solid fa-circle-check text-green-500 text-lg mt-0.5';
+                toast.style.borderLeftColor = '#10b981';
+            } else if (type === 'error') {
+                toastIcon.className = 'fa-solid fa-circle-xmark text-red-500 text-lg mt-0.5';
+                toast.style.borderLeftColor = '#dc2626';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-info text-blue-500 text-lg mt-0.5';
+                toast.style.borderLeftColor = '#3b82f6';
+            }
+            
+            // Show toast
+            toast.classList.add('show');
+            
+            // Auto-hide after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+        
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+        
+        // Header scroll shadow
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-nav');
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll <= 0) {
+                header.classList.remove('header-shadow');
+                return;
+            }
+            
+            if (currentScroll > lastScroll) {
+                header.classList.add('scroll-down');
+            } else {
+                header.classList.remove('scroll-down');
+            }
+            lastScroll = currentScroll;
+        });
+        
+        // Keyboard navigation for modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
